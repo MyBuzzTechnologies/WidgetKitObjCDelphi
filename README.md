@@ -1,11 +1,10 @@
-# Delphi-Swift Library Interop Tutorial
+# Delphi-Swift Library Interop Tutorial (Advanced)
 
-The project in this repo demonstrates a working Delphi 13 project that uses a custom created native Objective C framework that wraps the WidgetKit native swift framework so that it can be used by Delphi.
+The project in this repo demonstrates a working Delphi 13 project which uses a custom created native Objective C framework to wrap the WidgetKit native swift framework so that it can be used by Delphi.
 
 Delphi doesn't natively support importing and using Swift-only frameworks within a Delphi app.
-However, it DOES support using native Objective-C frameworks and mixed Objective C+Swift frameworks (though you may need to reference and link the swift frameworks as described in the excellent Kastri project (https://github.com/DelphiWorlds/HowTo/tree/main/Solutions/AddSwiftSupport))
 
-Instructions for how to create a wrapped Swift-only framework (natively with XCode) is below.
+However, it DOES support native Objective-C frameworks and mixed Objective C+Swift frameworks. The latter is what this project and instructions are about.
 
 ## Sample Project Outline
 
@@ -216,10 +215,164 @@ Now, how do you actually use this custom framework in Delphi?
 
 Fundamentally it follows these steps:
 
-1. Copy the custom framework into your SDK folder so Octoid can import it
+1. Create your Delphi project so you have somewhere to put things
 
-2. Use [Octoid](https://github.com/Embarcadero/octoid) to generate a header file for your custom framework
+2. Copy the custom framework into your SDK folder so Octoid can import it
 
-3. Create your project, which involves some project and linker config, importing the custom framework into the Deployment for the project, importing the newly generated header file from step 2 and voila.
+3. Use [Octoid](https://github.com/Embarcadero/octoid) to generate a header file for your custom framework
+
+4. Create your project, which involves some project and linker config, importing the custom framework into the Deployment for the project, importing the newly generated header file from step 2 and voila.
 
 I'll expand on all these below:
+
+### 1. Create a Delphi project (Firemonkey)
+
+A simple one - just create an FMX app (or use an existing one).
+
+### 2. Copy the framework and generate Delphi headers for it
+
+- Create a folder in the Delphi source folder called **Frameworks**
+- Copy the .framework folder from the build folder of XCode into the newly created folder
+- You also need to copy the .framework folder into the SDK folder for the iOS version you've imported into Delphi.
+  This is usually:
+
+```
+<your Documents folder>\Embarcadero\Studio\SDKs\iPhoneOS???.sdk\System\Library\Frameworks
+
+e.g.
+
+C:\Users\<username>\Documents\Embarcadero\Studio\SDKs\iPhoneOS26.0.sdk\System\Library\Frameworks
+```
+
+### 3. Use Octoid to generate a header file
+
+- Clone the repo for [Octoid](https://github.com/Embarcadero/octoid), open the Octoid project in Delphi and build according to the instructions for the Desktop app.
+
+- Use Octoid to import your new framework. It will appear in the list of SDK Frameworks in Octoid if you've copied it into the correct location.
+
+**Note:** I don't provide support for getting Octoid working. If you have questions or need help getting the .exe built, speak to the project owner.
+
+- Copy the iOSapi.?????.pas file it generates into your Delphi project.
+
+**How do you know it's correct?** - Simple, just open the generated file and make sure your Objective C class you created in the framework is shown. If so, it's good.
+
+### 3.1. Edit the generated header file with lazy loading
+
+There are a few ways to do this, but what I described below works for me every time...
+
+- Edit the generated iOSapi.?????.pas file (in Delphi if already imported into your project)
+- Remove everything from the **implementation** section as it isn't needed (but leave the "implementation" keyword or the unit won't compile).
+- Remove the const and the function directly above the "implementation" keyword.
+
+```
+e.g.
+--> remove these:
+
+-- function WidgetKitObjCVersionNumber: Double;
+-- // Exported const WidgetKitObjCVersionString has an unsupported type: const unsigned char []
+
+-- const
+--   libWidgetKitObjC = '/System/Library/Frameworks/WidgetKitObjC.framework/WidgetKitObjC';
+```
+
+- Directly BELOW the implementation keyword, add a lazy loader similar to the example below, replacing the name of the WidgetKitObjC with the name of your framework:
+
+```
+procedure <Framework Name>Loader; cdecl; external framework '<Framework Name>';
+
+e.g.
+
+procedure WidgetKitObjCLoader; cdecl; external framework 'WidgetKitObjC';
+```
+
+Note, do NOT include the .framework extension in the name.
+
+**Why do this?**
+
+Delphi can auto-link frameworks but they need to be referenced in the sources somewhere, even if not actually used.
+The simplest way is as shown below with a "lazy loader" reference. This is simple a procedure reference that is never used (so can have any time you like), as ong as it has the "external framework 'framework name';" part.
+
+### 4. Project Options and Deployment
+
+Now, you need to hook all this up as follows:
+
+1. Make sure your Delphi IDE has imported the standard Swift libraries, as you'll likely need them.
+
+See this article for how to do this:
+https://github.com/DelphiWorlds/HowTo/tree/main/Solutions/AddSwiftSupport
+
+**1. Add a linker option:**
+
+- In your Project Options > Delphi Compiler > Linking > Options passed to the LD Linker
+
+```
+-no_fixup_chains -ObjC -rpath /usr/lib/swift -rpath @loader_path/Frameworks
+```
+
+**Note:** technically you may not need the "-rpath /usr/lib/swift" reference, however, its a safe bet that as you're wrapping a Swift library (the whole point of this exercise), it's likely to reference one of the other standard Swift libraries.
+By including the above, the linker will be able to find any dependencies.
+
+**2. Reference the custom framework folder**
+
+This is the folder in your own Delphi project where you copied your custom framework earlier.
+
+Project Options > Delphi Compiler
+
+Set **Framework search path** to include "..\Frameworks"
+
+**3. Include the custom framework in your Delphi Project deployment**
+
+In your project, under **Project** > **Deployment**, you need to add every item from inside the .framework folder for your custom framework.
+
+Note: the **Remote Path** for each must have the same relative folder structure as the parent. E.g.:
+
+```
+Local Path:
+Frameworks\WidgetKitObjC.framework\
+
+Local File Name:
+Info.plist
+
+Remote Dir:
+.\Frameworks\WidgetKitObjC.framework
+
+Remote File Name:
+Info.plist
+```
+
+The main thing is that the Remote Dir MUST start with ".\Framework\...."
+
+**4. Write some Delphi code!**
+
+At this point you will be able to use the imported classes from your custom framework in your Delphi app.
+
+e.g.
+
+```delphi
+TWidgetKitObjCWrapper.OCClass.reloadAllTimelines;
+```
+
+**5. Done**
+
+At this point, you should be able to build and run your app.
+
+If the app runs without crashing, the custom framework has been found and linked correctly!
+
+## Problem Solving
+
+There are lots of things that could go wrong but if you follow the instructions, you should be ok.
+Below are the most common issues I found with advice on how to find a solution.
+
+### After doing everything above, my Delphi app crashes when opened
+
+This is most likely to be because the Framework (your custom one) can't be found by the app at runtime.
+
+Note: just because it links ok, doesn't mean it will run ok!
+
+- Missing Linker Options (make sure you pass the relative path to your framework folder into the Options To Be Passed To The Linker in your project options)
+- The custom framework isn't correct or has been copied incorrectly from the XCode build location
+
+### Delphi fails with Linker errors during the Linking phase of the build
+
+- Have you edited the iOSapi.?????.pas file to include the lazy loader procedure? If not, the linker won't be able to find it.
+- Check the lazy loader line has the correct framework name. This must match the ????.framework dolder name (without the .framework extension)
