@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2025/02/02 17:09:22.000.193,=C:\Users\chris\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2025/11/26 11:32:25.000.806,=C:\Users\chris\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2025/11/26 11:33:53.000.002,C:\Users\chris\Documents\Embarcadero\Studio\Projects\Unit1.fmx=C:\Development\Test\WidgetKit2Test\UnitMain.fmx</Transaction>
+    <Transaction>2025/11/26 11:33:53.000.002,C:\Users\chris\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Development\Test\WidgetKit2Test\UnitMain.pas</Transaction>
+    <Transaction>2025/11/26 11:34:01.000.122,C:\Users\chris\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Development\Test\WidgetKit2Test\WidgetKit2Test.dproj</Transaction>
+    <Transaction>2025/11/26 11:35:53.000.922,=C:\Development\Test\WidgetKit2Test\iOSapi.WidgetKitObjC.pas</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile Android64="" Android=""/>
+		<PMacOS iOSDevice64="_iosdevicectl_00008140-00100D980C87001C"/>  <PMac iOSDevice64="_iosdevicectl_00008140-00100D980C87001C"/>
+  </ActiveMobileDevice>
+</BorlandProject>

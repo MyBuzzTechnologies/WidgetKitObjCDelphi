@@ -1,0 +1,13 @@
+{
+  "Configurations" : ["Debug", "Release"],
+  "iOS" : [{
+      "LocalName" : "Frameworks\\WidgetKitObjC.framework",
+      "RemoteDir" : ".\\Frameworks\\WidgetKitObjC.framework",
+      "Configurations" : [],
+      "IsDirectory" : true,
+      "IncludeSubDirectories" : true
+    }],
+  "Android" : [],
+  "MacOS" : [],
+  "Linux" : []
+}
