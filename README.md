@@ -123,7 +123,7 @@ Once your custom Swift class is written and exposed with @objMembers and public,
 Again - this is a very thin wrapper class, which is correct.
 
 - Create a new **Objective C class file** (.m)
-- Create a new \*\*Objective C header file (.h) with the same name, so you have a pair
+- Create a new **Objective C header file** (.h) with the same name, so you have a pair
 
 Write your class and header interface in Objective C into these files.
 
@@ -173,7 +173,7 @@ WidgetKitObjCWrapper.m
 
 See [this document](https://developer.apple.com/documentation/swift/importing-swift-into-objective-c) for how to write interoperable code.
 
-Tip: the main parts to include as the ...-Swift.h> import. You won't see this in your project tree, as it's auto-generated but will be the same name as your custom Swift file with -Swift suffix.
+Tip: the strangest part is the import for ...-Swift.h>. You won't see this in your project tree, as it's auto-generated but will be the same name as your custom Swift file with -Swift suffix, and contains the Objective C version of your Swift class so it can be used in this class.
 
 Note: Make sure to add the API_AVAILABLE() and @available() wrappings as shown above if your wrapped Swift framework needs them (same as you did in the custom Swift class file).
 
