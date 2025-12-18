@@ -110,11 +110,15 @@ Note that the methods here are wrapped with **canImport()** to make sure the Wid
 
 You need to MARK the class with a **@objcMembers** decorator as shown above so that XCode automatically makes this custom swift class visible to Objective C code (needed later).
 
-All class methods we want to make available to Objective C MUST be **public** or **open** otherwise they can't be used.
+The class MUST inherit from **NSObject** or the swift generator won't export it.
+
+All class methods we want to make available to Objective C and be **public** or **open** otherwise they can't be used.
 
 Notice how in the above code, the methods just call the equivalent methods of the WidgetKit swift library, and uses the same names and parameters. This is absolutely fine.
 
 You can of course add other custom code, checks etc if you want to, or even write more complex custom methods to perform custom actions using the swift libraries. It's up to you.
+
+See the tips section at the end of this ReadMe for tips that may help if you're having issues.
 
 ### 4. Add an Objective C Wrapper
 
@@ -363,6 +367,15 @@ If the app runs without crashing, the custom framework has been found and linked
 There are lots of things that could go wrong but if you follow the instructions, you should be ok.
 Below are the most common issues I found with advice on how to find a solution.
 
+### When trying to build my framework in XCode, I see CLang errors saying it can't find one or more modules which are there
+
+This is one of those generic errors telling you what the linker failed on, not what caused it.
+In this case, it likely means that you're referring to the -swift.h bridge file in another .h file of your project.
+
+The -swift file is a generated one. Because of this, it won't be available to the other header files depending on the build order. You can import it into the .m files, but not the .h files.
+
+You will need to restructure your code so you don't need the import in your .h file anymore.
+
 ### After doing everything above, my Delphi app crashes when opened
 
 This is most likely to be because the Framework (your custom one) can't be found by the app at runtime.
@@ -376,3 +389,40 @@ Note: just because it links ok, doesn't mean it will run ok!
 
 - Have you edited the iOSapi.?????.pas file to include the lazy loader procedure? If not, the linker won't be able to find it.
 - Check the lazy loader line has the correct framework name. This must match the ????.framework dolder name (without the .framework extension)
+
+## Tips that may help
+
+### Looking at the generated Objective C classes of your bridge Swift class
+
+XCode will automatically create a swift header file for you which you can take a look at to check whether your swift class has exported what you expected to Objective C or not.
+This file will be generated in your build folder. Usually something like:
+```
+~/Library/Developer/Xcode/DerivedData/<project name>-eyqisrfcxmibozcdntjoexyykzye/Index.noindex/Build/Products/Debug-iphoneos/<Framework Name>.framework/Headers/<FrameworkName>-Swift.h
+```
+If you open this file in XCode and scroll down to the bottom, you will see details for each exported class so you can check.
+For example:
+```
+SWIFT_CLASS("_TtC20DeclaredAgeRangeObjC22DeclaredAgeRangeBridge") SWIFT_AVAILABILITY(ios,introduced=26.0)
+@interface DeclaredAgeRangeBridge : NSObject
++ (void)fetchAgeRangeWithMinimumAge:(NSInteger)minimumAge maximumAge:(NSInteger)maximumAge vc:(UIViewController * _Nonnull)vc completion:(void (^ _Nonnull)(DeclaredAgeRangeResponse * _Nullable, NSError * _Nullable))completion;
+- (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
+@end
+```
+If you can't find your class mentioned in this file, there are a few potential causes:
+
+1. Your class doesn't inherit from the NSObject class
+2. You missed added the @objcMembers decorator above the class declaration
+3. Your class is not marked as **public**
+
+If your class is being exported into the -swift bridge file, but you're missing one or more methods or properties:
+
+1. Make sure the method or property is marked as public (even if also marked static)
+2. You can try adding @objc decorator to the method or property header to see if that helps (e.g. @objc static public let myConstant = 4)
+3. One or more types used by that property or in the parameters of that method aren't available for Objective C.
+
+With regard to #3, this is something I hit a few times.
+
+Swift has enums, but Objective C doesn't. If you use parameters or a return type which is an Enum, it won't be exported to the bridge file.
+You will need to find another option - e.g. using Int value equivalents.
+
+I hope this helps!
