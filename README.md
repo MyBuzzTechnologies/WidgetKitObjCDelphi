@@ -254,7 +254,7 @@ C:\Users\<username>\Documents\Embarcadero\Studio\SDKs\iPhoneOS26.0.sdk\System\Li
 
 - Use Octoid to import your new framework. It will appear in the list of SDK Frameworks in Octoid if you've copied it into the correct location.
 
-**Note:** I don't provide support for getting Octoid working. If you have questions or need help getting the .exe built, speak to the project owner.
+**Note:** If you have questions or need help getting Octoid built, raise an issue in the Octoid repo and the project owners will be able to help https://github.com/Embarcadero/octoid/issues
 
 - Copy the iOSapi.?????.pas file it generates into your Delphi project.
 
